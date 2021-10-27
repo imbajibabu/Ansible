@@ -1,0 +1,50 @@
+- name: Include Common Role for OS Prereqs
+  include_role:
+    name: common
+    tasks_from: os
+   
+- name: Installing NGiNX Server
+  yum:
+    name: nginx
+    state: latest
+
+- name: Delete default NGiNX Content
+  file:
+    state: absent
+    path: /usr/share/nginx/html
+
+- name: Create NGiNX Deirecory
+  file:
+    state: directory
+    path: /usr/share/nginx/html
+
+- name: Deploying WebApplication (frontend server)
+  copy:
+    src: static/
+    dest: /usr/share/nginx/html
+
+# - name: Move Artifiact Files /usr/share/nginx/html/
+#   shell: |
+#     cd /usr/share/nginx/html
+#     mv static/* .
+#     rm -rf static
+
+#mv localhost.conf /etc/nginx/default.d/roboshop.conf
+
+- name: Setup /etc/nginx/default.d/roboshop.conf
+  template:
+    src: roboshop.conf
+    dest: /etc/nginx/default.d/roboshop.conf
+
+- name: Update Nginx Configuration
+  template:
+   src: nginx.conf
+   dest: /etc/nginx/nginx.conf
+
+- name: Starting nginx services
+  systemd: 
+   daemon_reload: yes
+   enabled: yes
+   state: restarted
+   name: nginx
+  ignore_errors: yes
